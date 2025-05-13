@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback | Customer Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Base Styles (unchanged from previous) */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            color: #ff7300;
+        }
+        
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar .active {
+            color: #ff7300;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* New Styles for Delivery Metrics */
+        .metrics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff7300;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .delivery-rating-container {
+            margin: 20px 0;
+        }
+        
+        .delivery-rating-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .delivery-rating-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background-color: #f0f0f0;
+            transition: all 0.3s;
+        }
+        
+        .delivery-rating-option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .delivery-rating-option.selected {
+            background-color: rgba(255, 115, 0, 0.1);
+            color: #ff7300;
+            font-weight: 600;
+        }
+        
+        /* Existing Feedback Styles (unchanged) */
+        .feedback-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .feedback-form-section {
+            background-color: #f9f9f9;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #ff7300;
+            outline: none;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .rating-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .rating-star {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .rating-star:hover,
+        .rating-star.active {
+            color: #ff7300;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .submit-btn {
+            padding: 12px 25px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        .reset-btn {
+            background-color: #666;
+        }
+        
+        .reset-btn:hover {
+            background-color: #444;
+        }
+        
+        .feedback-history {
+            background-color: #f9f9f9;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .feedback-item {
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid #ff7300;
+        }
+        
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .feedback-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: rgba(255, 115, 0, 0.1);
+            color: #ff7300;
+        }
+        
+        .feedback-date {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .feedback-rating {
+            color: #ff7300;
+            margin: 5px 0;
+        }
+        
+        .feedback-message {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .no-feedback {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+        
+        .no-feedback i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .feedback-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .submit-btn,
+            .reset-btn {
+                width: 100%;
+            }
+            
+            .delivery-rating-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="Customer_dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="TrackShipment.html"><i class="fas fa-map-marked-alt"></i> Track Shipment</a></li>
+                <li><a href="MyShipments.html"><i class="fas fa-boxes"></i> My Shipments</a></li>
+                <li><a href="Notifications.html" class="active"><i class="fas fa-bell"></i> Notifications</a></li>
+                <li><a href="Feedback.html"><i class="fas fa-comment-alt"></i> Feedback</a></li>
+                <li><a href="Settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="Logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h1><i class="fas fa-comment-alt"></i> Feedback</h1>
+            
+            <!-- Delivery Performance Metrics -->
+            <div class="metrics-container">
+                <div class="metric-card">
+                    <div class="metric-value">87%</div>
+                    <div class="metric-label">On-Time Delivery Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">3.2</div>
+                    <div class="metric-label">Average Delivery Days</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">24</div>
+                    <div class="metric-label">Total Shipments</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">4.5</div>
+                    <div class="metric-label">Average Rating</div>
+                </div>
+            </div>
+            
+            <div class="feedback-container">
+                <!-- Feedback Form -->
+                <section class="feedback-form-section">
+                    <h2><i class="fas fa-pencil-alt"></i> Submit Feedback</h2>
+                    <p>We value your opinion. Please share your experience with our services.</p>
+                    
+                    <form id="feedbackForm">
+                        <div class="form-group">
+                            <label for="feedbackType">Feedback Type</label>
+                            <select id="feedbackType" required>
+                                <option value="">Select feedback type</option>
+                                <option value="general">General Feedback</option>
+                                <option value="shipment">About a Shipment</option>
+                                <option value="service">Customer Service</option>
+                                <option value="suggestion">Suggestion</option>
+                                <option value="complaint">Complaint</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="shipmentId">Shipment ID (if applicable)</label>
+                            <input type="text" id="shipmentId" placeholder="e.g. SH1001">
+                        </div>
+                        
+                        <!-- Delivery Rating Section -->
+                        <div class="form-group delivery-rating-container">
+                            <label>Was this delivery on time?</label>
+                            <div class="delivery-rating-options" id="deliveryTiming">
+                                <div class="delivery-rating-option" data-value="early">
+                                    <i class="fas fa-check-circle"></i> Early
+                                </div>
+                                <div class="delivery-rating-option" data-value="ontime">
+                                    <i class="fas fa-thumbs-up"></i> On Time
+                                </div>
+                                <div class="delivery-rating-option" data-value="late">
+                                    <i class="fas fa-clock"></i> Late
+                                </div>
+                            </div>
+                            <input type="hidden" id="deliveryTimingValue">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deliveryDays">Actual Delivery Days</label>
+                            <input type="number" id="deliveryDays" min="1" max="30" placeholder="Enter number of days">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Overall Rating</label>
+                            <div class="rating-container" id="ratingStars">
+                                <i class="fas fa-star rating-star" data-value="1"></i>
+                                <i class="fas fa-star rating-star" data-value="2"></i>
+                                <i class="fas fa-star rating-star" data-value="3"></i>
+                                <i class="fas fa-star rating-star" data-value="4"></i>
+                                <i class="fas fa-star rating-star" data-value="5"></i>
+                            </div>
+                            <input type="hidden" id="ratingValue" value="0" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feedbackSubject">Subject</label>
+                            <input type="text" id="feedbackSubject" placeholder="Brief summary of your feedback" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feedbackMessage">Your Feedback</label>
+                            <textarea id="feedbackMessage" placeholder="Please describe your experience in detail..." required></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="reset" class="submit-btn reset-btn">Reset</button>
+                            <button type="submit" class="submit-btn">Submit Feedback</button>
+                        </div>
+                    </form>
+                </section>
+                
+                <!-- Feedback History -->
+                <section class="feedback-history">
+                    <h2><i class="fas fa-history"></i> Your Recent Feedback</h2>
+                    
+                    <div id="feedbackList">
+                        <!-- Feedback Item 1 -->
+                        <div class="feedback-item">
+                            <div class="feedback-header">
+                                <span class="feedback-type">About a Shipment</span>
+                                <span class="feedback-date">July 15, 2023</span>
+                            </div>
+                            <div class="feedback-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <span style="margin-left: 10px; color: #666;">(4/5)</span>
+                            </div>
+                            <div style="margin: 8px 0; font-size: 14px;">
+                                <span style="color: #4CAF50;"><i class="fas fa-check-circle"></i> Early Delivery (2 days)</span>
+                            </div>
+                            <h3>Fast delivery but damaged package</h3>
+                            <p class="feedback-message">
+                                The shipment arrived earlier than expected which was great, but one of the boxes was damaged during transit. The contents were slightly affected but still usable.
+                            </p>
+                            <p><strong>Shipment:</strong> SH1003</p>
+                        </div>
+                        
+                        <!-- Feedback Item 2 -->
+                        <div class="feedback-item">
+                            <div class="feedback-header">
+                                <span class="feedback-type">Customer Service</span>
+                                <span class="feedback-date">July 5, 2023</span>
+                            </div>
+                            <div class="feedback-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <span style="margin-left: 10px; color: #666;">(5/5)</span>
+                            </div>
+                            <div style="margin: 8px 0; font-size: 14px;">
+                                <span style="color: #2196F3;"><i class="fas fa-thumbs-up"></i> On Time Delivery (3 days)</span>
+                            </div>
+                            <h3>Excellent support</h3>
+                            <p class="feedback-message">
+                                The customer service representative was very helpful in resolving my issue with a delayed shipment. They provided regular updates and even offered a discount for the inconvenience.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="no-feedback" id="noFeedback" style="display: none;">
+                        <i class="far fa-comment-dots"></i>
+                        <h3>No Feedback Submitted</h3>
+                        <p>You haven't submitted any feedback yet. Your feedback helps us improve our services.</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Rating stars functionality
+        const stars = document.querySelectorAll('.rating-star');
+        const ratingValue = document.getElementById('ratingValue');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                ratingValue.value = value;
+                
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.add('active');
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                    } else {
+                        s.classList.remove('active');
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseover', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.add('hover');
+                    } else {
+                        s.classList.remove('hover');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseout', () => {
+                stars.forEach(s => s.classList.remove('hover'));
+            });
+        });
+        
+        // Delivery timing selection
+        const deliveryOptions = document.querySelectorAll('.delivery-rating-option');
+        const deliveryTimingValue = document.getElementById('deliveryTimingValue');
+        
+        deliveryOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                deliveryOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                deliveryTimingValue.value = option.getAttribute('data-value');
+            });
+        });
+        
+        // Form submission
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const type = document.getElementById('feedbackType').value;
+            const shipmentId = document.getElementById('shipmentId').value;
+            const deliveryTiming = deliveryTimingValue.value;
+            const deliveryDays = document.getElementById('deliveryDays').value;
+            const rating = document.getElementById('ratingValue').value;
+            const subject = document.getElementById('feedbackSubject').value;
+            const message = document.getElementById('feedbackMessage').value;
+            
+            // Validate rating
+            if (rating === "0") {
+                alert('Please provide an overall rating');
+                return;
+            }
+            
+            // Validate delivery timing if shipment feedback
+            if (type === "shipment" && !deliveryTiming) {
+                alert('Please indicate if delivery was early, on time, or late');
+                return;
+            }
+            
+            // In a real application, this would send the data to the server
+            console.log('Feedback submitted:', {
+                type,
+                shipmentId,
+                deliveryTiming,
+                deliveryDays,
+                rating,
+                subject,
+                message
+            });
+            
+            // Create new feedback item (simulating server response)
+            const feedbackList = document.getElementById('feedbackList');
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const typeText = {
+                'general': 'General Feedback',
+                'shipment': 'About a Shipment',
+                'service': 'Customer Service',
+                'suggestion': 'Suggestion',
+                'complaint': 'Complaint'
+            }[type];
+            
+            const starsHtml = Array(5).fill('')
+                .map((_, i) => i < rating 
+                    ? '<i class="fas fa-star"></i>' 
+                    : '<i class="far fa-star"></i>')
+                .join('');
+            
+            const deliveryHtml = type === "shipment" && deliveryTiming 
+                ? `<div style="margin: 8px 0; font-size: 14px;">
+                    <span style="color: ${
+                        deliveryTiming === 'early' ? '#4CAF50' : 
+                        deliveryTiming === 'ontime' ? '#2196F3' : '#F44336'
+                    };">
+                        <i class="fas ${
+                            deliveryTiming === 'early' ? 'fa-check-circle' : 
+                            deliveryTiming === 'ontime' ? 'fa-thumbs-up' : 'fa-clock'
+                        }"></i> ${deliveryTiming === 'early' ? 'Early' : 
+                          deliveryTiming === 'ontime' ? 'On Time' : 'Late'} Delivery${
+                            deliveryDays ? ` (${deliveryDays} days)` : ''
+                        }</span>
+                   </div>`
+                : '';
+            
+            const shipmentHtml = shipmentId 
+                ? `<p><strong>Shipment:</strong> ${shipmentId}</p>`
+                : '';
+            
+            const feedbackItem = document.createElement('div');
+            feedbackItem.className = 'feedback-item';
+            feedbackItem.innerHTML = `
+                <div class="feedback-header">
+                    <span class="feedback-type">${typeText}</span>
+                    <span class="feedback-date">${dateString}</span>
+                </div>
+                <div class="feedback-rating">
+                    ${starsHtml}
+                    <span style="margin-left: 10px; color: #666;">(${rating}/5)</span>
+                </div>
+                ${deliveryHtml}
+                <h3>${subject}</h3>
+                <p class="feedback-message">${message}</p>
+                ${shipmentHtml}
+            `;
+            
+            // Prepend new feedback to the list
+            feedbackList.prepend(feedbackItem);
+            
+            // Hide "no feedback" message if it's shown
+            document.getElementById('noFeedback').style.display = 'none';
+            
+            // Reset form
+            this.reset();
+            ratingValue.value = '0';
+            stars.forEach(star => {
+                star.classList.remove('active');
+                star.classList.remove('fas');
+                star.classList.add('far');
+            });
+            deliveryOptions.forEach(opt => opt.classList.remove('selected'));
+            deliveryTimingValue.value = '';
+            
+            // Show success message
+            alert('Thank you for your feedback! We appreciate your time.');
+            
+            // Update metrics (simulated)
+            updateMetrics();
+        });
+        
+        // Function to update metrics (simulated)
+        function updateMetrics() {
+            // In a real app, this would come from server data
+            const metrics = document.querySelectorAll('.metric-value');
+            if (metrics.length > 0) {
+                // Simulate small changes to metrics
+                metrics[0].textContent = '88%'; // Slight increase in on-time rate
+                metrics[1].textContent = '3.1'; // Slight decrease in avg days
+                metrics[2].textContent = '25'; // Increment total shipments
+                // Average rating would be calculated based on all feedback
+            }
+        }
+        
+        // Check if feedback list is empty (for initial load)
+        function checkFeedbackList() {
+            const feedbackList = document.getElementById('feedbackList');
+            if (feedbackList.children.length === 0) {
+                document.getElementById('noFeedback').style.display = 'block';
+            }
+        }
+        
+        // Initial check
+        checkFeedbackList();
+    </script>
+</body>
+</html>

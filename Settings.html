@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Customer Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            color: #ff7300;
+        }
+        
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Active link in sidebar */
+        .sidebar .active {
+            color: #ff7300;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Main Content Styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* Settings Tabs */
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 25px;
+        }
+        
+        .settings-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .settings-tab:hover {
+            color: #ff7300;
+        }
+        
+        .settings-tab.active {
+            color: #ff7300;
+            border-bottom: 3px solid #ff7300;
+        }
+        
+        /* Settings Sections */
+        .settings-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Profile Settings */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ff7300;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+        
+        .profile-info h2 {
+            margin-bottom: 5px;
+        }
+        
+        .profile-info p {
+            color: #666;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #ff7300;
+            outline: none;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        /* Notification Settings */
+        .notification-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .notification-option input[type="checkbox"] {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .notification-label {
+            flex: 1;
+        }
+        
+        .notification-label h4 {
+            margin-bottom: 3px;
+        }
+        
+        .notification-label p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Security Settings */
+        .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .security-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .security-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .security-action {
+            margin-left: 15px;
+        }
+        
+        /* Preferences */
+        .preference-option {
+            margin-bottom: 20px;
+        }
+        
+        /* Action Buttons */
+        .action-btn {
+            padding: 10px 20px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        .secondary-btn {
+            background-color: #666;
+        }
+        
+        .secondary-btn:hover {
+            background-color: #444;
+        }
+        
+        .danger-btn {
+            background-color: #f44336;
+        }
+        
+        .danger-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .settings-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .security-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .security-action {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .security-action .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="Customer_dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="TrackShipment.html"><i class="fas fa-map-marked-alt"></i> Track Shipment</a></li>
+                <li><a href="MyShipments.html"><i class="fas fa-boxes"></i> My Shipments</a></li>
+                <li><a href="Notifications.html" class="active"><i class="fas fa-bell"></i> Notifications</a></li>
+                <li><a href="Feedback.html"><i class="fas fa-comment-alt"></i> Feedback</a></li>
+                <li><a href="Settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="Logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h1><i class="fas fa-cog"></i> Settings</h1>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <div class="settings-tab active" data-tab="profile">Profile</div>
+                <div class="settings-tab" data-tab="notifications">Notifications</div>
+                <div class="settings-tab" data-tab="security">Security</div>
+                <div class="settings-tab" data-tab="preferences">Preferences</div>
+                <div class="settings-tab" data-tab="billing">Billing</div>
+            </div>
+            
+            <!-- Profile Settings -->
+            <section class="settings-section active" id="profile-section">
+                <div class="profile-header">
+                    <div class="profile-avatar">FB</div>
+                    <div class="profile-info">
+                        <h2>Florence Banda</h2>
+                        <p>Customer since June 2021</p>
+                    </div>
+                </div>
+                
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" value="florence" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" value="Banda" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" value="florence.banda@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" value="+265 991 234 567">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company (Optional)</label>
+                        <input type="text" id="company" value="Banda Enterprises">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="reset" class="action-btn secondary-btn">Cancel</button>
+                        <button type="submit" class="action-btn">Save Changes</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Notification Settings -->
+            <section class="settings-section" id="notifications-section">
+                <h2>Notification Preferences</h2>
+                <p>Choose how you want to receive notifications about your shipments and account activity.</p>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="emailNotifications" checked>
+                    <div class="notification-label">
+                        <h4>Email Notifications</h4>
+                        <p>Receive important updates via email</p>
+                    </div>
+                </div>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="smsNotifications" checked>
+                    <div class="notification-label">
+                        <h4>SMS Notifications</h4>
+                        <p>Get text alerts for urgent updates</p>
+                    </div>
+                </div>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="inAppNotifications" checked>
+                    <div class="notification-label">
+                        <h4>In-App Notifications</h4>
+                        <p>See notifications when you log in</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Shipment Notifications</h3>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="shipmentCreated" checked>
+                    <div class="notification-label">
+                        <h4>Shipment Created</h4>
+                        <p>When a new shipment is created for you</p>
+                    </div>
+                </div>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="shipmentInTransit" checked>
+                    <div class="notification-label">
+                        <h4>In Transit Updates</h4>
+                        <p>When your shipment reaches key locations</p>
+                    </div>
+                </div>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="shipmentDelivered" checked>
+                    <div class="notification-label">
+                        <h4>Delivery Confirmation</h4>
+                        <p>When your shipment is delivered</p>
+                    </div>
+                </div>
+                
+                <div class="notification-option">
+                    <input type="checkbox" id="deliveryIssues">
+                    <div class="notification-label">
+                        <h4>Delivery Issues</h4>
+                        <p>If there are problems with your delivery</p>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="action-btn secondary-btn">Reset to Default</button>
+                    <button class="action-btn">Save Preferences</button>
+                </div>
+            </section>
+            
+            <!-- Security Settings -->
+            <section class="settings-section" id="security-section">
+                <h2>Security Settings</h2>
+                <p>Manage your account security and login preferences.</p>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Password</h4>
+                        <p>Last changed 3 months ago</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn">Change Password</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Two-Factor Authentication</h4>
+                        <p>Add an extra layer of security to your account</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn">Enable 2FA</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Login Activity</h4>
+                        <p>View recent login attempts and devices</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn secondary-btn">View Activity</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Connected Devices</h4>
+                        <p>Manage devices that can access your account</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn secondary-btn">Manage Devices</button>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Danger Zone</h3>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Deactivate Account</h4>
+                        <p>Temporarily disable your account</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn danger-btn">Deactivate</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Preferences -->
+            <section class="settings-section" id="preferences-section">
+                <h2>Preferences</h2>
+                <p>Customize your experience with our platform.</p>
+                
+                <div class="form-group">
+                    <label for="language">Language</label>
+                    <select id="language">
+                        <option value="en">English</option>
+                        <option value="ny">Chichewa</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="timezone">Timezone</label>
+                    <select id="timezone">
+                        <option value="Africa/Blantyre">Central Africa Time (CAT) - Blantyre</option>
+                        <option value="UTC">UTC</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="theme">Theme</label>
+                    <select id="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System Default</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="defaultView">Default Dashboard View</label>
+                    <select id="defaultView">
+                        <option value="overview">Overview</option>
+                        <option value="shipments">My Shipments</option>
+                        <option value="tracking">Tracking</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="action-btn secondary-btn">Reset to Default</button>
+                    <button class="action-btn">Save Preferences</button>
+                </div>
+            </section>
+            
+            <!-- Billing Settings -->
+            <section class="settings-section" id="billing-section">
+                <h2>Billing Information</h2>
+                <p>Manage your payment methods and billing details.</p>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Payment Methods</h4>
+                        <p>VISA ending in 4242 (Expires 05/25)</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn">Manage Payments</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Billing Address</h4>
+                        <p>123 Business St, Lilongwe, Malawi</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn">Edit Address</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Invoices</h4>
+                        <p>View and download your past invoices</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn secondary-btn">View Invoices</button>
+                    </div>
+                </div>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h4>Tax Information</h4>
+                        <p>Manage your tax details and documents</p>
+                    </div>
+                    <div class="security-action">
+                        <button class="action-btn secondary-btn">Manage Taxes</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('.settings-tab');
+        const sections = document.querySelectorAll('.settings-section');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and sections
+                tabs.forEach(t => t.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding section
+                tab.classList.add('active');
+                const sectionId = tab.getAttribute('data-tab') + '-section';
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+        
+        // Form submission for profile
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Profile updated successfully!');
+            // In a real app, this would send data to the server
+        });
+        
+        // Notification preferences save
+        document.querySelector('#notifications-section .action-btn:last-child').addEventListener('click', function() {
+            alert('Notification preferences saved!');
+            // In a real app, this would send data to the server
+        });
+        
+        // Reset notification preferences
+        document.querySelector('#notifications-section .secondary-btn').addEventListener('click', function() {
+            if (confirm('Reset all notification preferences to default?')) {
+                const checkboxes = document.querySelectorAll('#notifications-section input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                // Uncheck delivery issues as it's off by default
+                document.getElementById('deliveryIssues').checked = false;
+                alert('Notification preferences reset to default');
+            }
+        });
+        
+        // Change password button
+        document.querySelector('#security-section .action-btn').addEventListener('click', function() {
+            const newPassword = prompt('Enter your new password:');
+            if (newPassword) {
+                alert('Password changed successfully!');
+                // In a real app, this would validate and update password
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<?php
+class WebSocketServer {
+    private $clients = [];
+    private $socket;
+    
+    public function __construct($host = '0.0.0.0', $port = 8080) {
+        $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        socket_bind($this->socket, $host, $port);
+        socket_listen($this->socket);
+        
+        echo "WebSocket server started on ws://$host:$port\n";
+    }
+    
+    public function run() {
+        $null = null;
+        $this->clients = [$this->socket];
+        
+        while (true) {
+            $changed = $this->clients;
+            socket_select($changed, $null, $null, 0, 10);
+            
+            if (in_array($this->socket, $changed)) {
+                $new_client = socket_accept($this->socket);
+                $this->clients[] = $new_client;
+                
+                $header = socket_read($new_client, 1024);
+                $this->performHandshake($header, $new_client);
+                
+                $found_socket = array_search($this->socket, $changed);
+                unset($changed[$found_socket]);
+            }
+            
+            foreach ($changed as $changed_socket) {
+                $buf = socket_read($changed_socket, 1024, PHP_NORMAL_READ);
+                
+                if ($buf === false) {
+                    $found_socket = array_search($changed_socket, $this->clients);
+                    socket_close($changed_socket);
+                    unset($this->clients[$found_socket]);
+                    continue;
+                }
+                
+                $data = $this->unmask($buf);
+                $this->processMessage($data, $changed_socket);
+            }
+        }
+    }
+    
+    private function performHandshake($header, $client) {
+        $headers = [];
+        $lines = preg_split("/\r\n/", $header);
+        
+        foreach ($lines as $line) {
+            if (preg_match('/\A(\S+): (.*)\z/', $line, $matches)) {
+                $headers[$matches[1]] = $matches[2];
+            }
+        }
+        
+        if (isset($headers['Sec-WebSocket-Key'])) {
+            $key = $headers['Sec-WebSocket-Key'];
+            $acceptKey = base64_encode(sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
+            
+            $upgrade = "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" .
+                       "Upgrade: websocket\r\n" .
+                       "Connection: Upgrade\r\n" .
+                       "WebSocket-Origin: *\r\n" .
+                       "WebSocket-Location: ws://" . $_SERVER['HTTP_HOST'] . "/\r\n" .
+                       "Sec-WebSocket-Accept: $acceptKey\r\n\r\n";
+            
+            socket_write($client, $upgrade, strlen($upgrade));
+        }
+    }
+    
+    private function unmask($payload) {
+        $length = ord($payload[1]) & 127;
+        
+        if ($length == 126) {
+            $masks = substr($payload, 4, 4);
+            $data = substr($payload, 8);
+        } elseif ($length == 127) {
+            $masks = substr($payload, 10, 4);
+            $data = substr($payload, 14);
+        } else {
+            $masks = substr($payload, 2, 4);
+            $data = substr($payload, 6);
+        }
+        
+        $text = '';
+        for ($i = 0; $i < strlen($data); ++$i) {
+            $text .= $data[$i] ^ $masks[$i % 4];
+        }
+        
+        return $text;
+    }
+    
+    private function mask($text) {
+        $b1 = 0x80 | (0x1 & 0x0f);
+        $length = strlen($text);
+        
+        if ($length <= 125) {
+            $header = pack('CC', $b1, $length);
+        } elseif ($length > 125 && $length < 65536) {
+            $header = pack('CCn', $b1, 126, $length);
+        } else {
+            $header = pack('CCNN', $b1, 127, $length);
+        }
+        
+        return $header . $text;
+    }
+    
+    private function processMessage($message, $client) {
+        // Handle incoming message
+        $data = json_decode($message, true);
+        
+        if ($data && isset($data['action'])) {
+            switch ($data['action']) {
+                case 'subscribe':
+                    $this->subscribeToVehicle($client, $data['vehicle_id']);
+                    break;
+                // Add more actions as needed
+            }
+        }
+    }
+    
+    private function subscribeToVehicle($client, $vehicleId) {
+        // Store subscription information
+        $this->clients[(int)$client]['subscriptions'][] = $vehicleId;
+    }
+    
+    public function sendToClient($client, $message) {
+        socket_write($client, $this->mask($message), strlen($this->mask($message)));
+    }
+    
+    public function broadcastToVehicle($vehicleId, $message) {
+        foreach ($this->clients as $client) {
+            if (is_resource($client) && isset($this->clients[(int)$client]['subscriptions']) && 
+                in_array($vehicleId, $this->clients[(int)$client]['subscriptions'])) {
+                $this->sendToClient($client, $message);
+            }
+        }
+    }
+}
+
+// Start the server
+$server = new WebSocketServer('0.0.0.0', 8080);
+$server->run();
+?>

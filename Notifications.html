@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | Customer Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            color: #ff7300;
+        }
+        
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Active link in sidebar */
+        .sidebar .active {
+            color: #ff7300;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Main Content Styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        /* Notification Header */
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        .mark-all-btn {
+            background-color: #666;
+        }
+        
+        .mark-all-btn:hover {
+            background-color: #444;
+        }
+        
+        /* Notification Filter */
+        .notification-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .filter-tab {
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .filter-tab:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .filter-tab.active {
+            background-color: #ff7300;
+            color: white;
+        }
+        
+        /* Notification List */
+        .notification-list {
+            margin-top: 20px;
+        }
+        
+        .notification-item {
+            display: flex;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .notification-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .notification-item.unread {
+            background-color: #f8f9fa;
+            border-left: 4px solid #ff7300;
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            color: #ff7300;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 115, 0, 0.1);
+            border-radius: 50%;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .notification-message {
+            color: #555;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        
+        .notification-time {
+            color: #888;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification-time i {
+            margin-right: 5px;
+            font-size: 12px;
+        }
+        
+        .notification-shipment {
+            display: inline-block;
+            background-color: rgba(255, 115, 0, 0.1);
+            color: #ff7300;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .small-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .view-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .dismiss-btn {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+        
+        .dismiss-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .notification-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .notification-filter {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="Customer_dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="TrackShipment.html"><i class="fas fa-map-marked-alt"></i> Track Shipment</a></li>
+                <li><a href="MyShipments.html"><i class="fas fa-boxes"></i> My Shipments</a></li>
+                <li><a href="Notifications.html" class="active"><i class="fas fa-bell"></i> Notifications</a></li>
+                <li><a href="Feedback.html"><i class="fas fa-comment-alt"></i> Feedback</a></li>
+                <li><a href="Settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="Logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h1><i class="fas fa-bell"></i> Notifications</h1>
+            
+            <div class="notification-header">
+                <h2>Recent Alerts</h2>
+                <div class="notification-actions">
+                    <button class="action-btn mark-all-btn" id="markAllRead">
+                        <i class="fas fa-check-circle"></i> Mark All as Read
+                    </button>
+                    <button class="action-btn" id="clearAll">
+                        <i class="fas fa-trash-alt"></i> Clear All
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Notification Filter -->
+            <div class="notification-filter">
+                <div class="filter-tab active" data-filter="all">All</div>
+                <div class="filter-tab" data-filter="unread">Unread</div>
+                <div class="filter-tab" data-filter="shipment">Shipments</div>
+                <div class="filter-tab" data-filter="system">System</div>
+                <div class="filter-tab" data-filter="promotion">Promotions</div>
+            </div>
+            
+            <!-- Notification List -->
+            <div class="notification-list">
+                <!-- Unread Notification -->
+                <div class="notification-item unread" data-type="shipment">
+                    <div class="notification-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            <span>Shipment Update</span>
+                            <span class="notification-time">
+                                <i class="far fa-clock"></i> 2 hours ago
+                            </span>
+                        </div>
+                        <div class="notification-message">
+                            Your shipment <strong>SH1001</strong> has arrived in Dedza and is being processed for onward delivery to Blantyre.
+                        </div>
+                        <span class="notification-shipment">SH1001: Lilongwe to Blantyre</span>
+                        <div class="notification-actions">
+                            <button class="small-btn view-btn" onclick="viewShipment('SH1001')">
+                                <i class="fas fa-eye"></i> View Shipment
+                            </button>
+                            <button class="small-btn dismiss-btn" onclick="markAsRead(this)">
+                                <i class="fas fa-check"></i> Mark as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Read Notification -->
+                <div class="notification-item" data-type="shipment">
+                    <div class="notification-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            <span>Delivery Completed</span>
+                            <span class="notification-time">
+                                <i class="far fa-clock"></i> 1 day ago
+                            </span>
+                        </div>
+                        <div class="notification-message">
+                            Your shipment <strong>SH1003</strong> was successfully delivered to Zomba Construction Site at 11:45 AM.
+                        </div>
+                        <span class="notification-shipment">SH1003: Blantyre to Zomba</span>
+                        <div class="notification-actions">
+                            <button class="small-btn view-btn" onclick="viewShipment('SH1003')">
+                                <i class="fas fa-eye"></i> View Shipment
+                            </button>
+                            <button class="small-btn dismiss-btn" onclick="removeNotification(this)">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Notification -->
+                <div class="notification-item unread" data-type="system">
+                    <div class="notification-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            <span>System Maintenance</span>
+                            <span class="notification-time">
+                                <i class="far fa-clock"></i> 3 days ago
+                            </span>
+                        </div>
+                        <div class="notification-message">
+                            Our system will undergo scheduled maintenance on July 20th from 2:00 AM to 4:00 AM. Some features may be temporarily unavailable.
+                        </div>
+                        <div class="notification-actions">
+                            <button class="small-btn dismiss-btn" onclick="markAsRead(this)">
+                                <i class="fas fa-check"></i> Mark as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Promotion Notification -->
+                <div class="notification-item" data-type="promotion">
+                    <div class="notification-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            <span>Special Discount</span>
+                            <span class="notification-time">
+                                <i class="far fa-clock"></i> 1 week ago
+                            </span>
+                        </div>
+                        <div class="notification-message">
+                            Get 15% off your next shipment! Use promo code <strong>SAVE15</strong> when booking before July 31st.
+                        </div>
+                        <div class="notification-actions">
+                            <button class="small-btn view-btn" onclick="viewPromotion()">
+                                <i class="fas fa-tags"></i> View Offer
+                            </button>
+                            <button class="small-btn dismiss-btn" onclick="removeNotification(this)">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shipment Notification -->
+                <div class="notification-item" data-type="shipment">
+                    <div class="notification-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            <span>Shipment Prepared</span>
+                            <span class="notification-time">
+                                <i class="far fa-clock"></i> 1 week ago
+                            </span>
+                        </div>
+                        <div class="notification-message">
+                            Your shipment <strong>SH1005</strong> is being prepared for dispatch from Mzuzu Depot.
+                        </div>
+                        <span class="notification-shipment">SH1005: Mzuzu to Lilongwe</span>
+                        <div class="notification-actions">
+                            <button class="small-btn view-btn" onclick="viewShipment('SH1005')">
+                                <i class="fas fa-eye"></i> View Shipment
+                            </button>
+                            <button class="small-btn dismiss-btn" onclick="removeNotification(this)">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State (hidden by default) -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="far fa-bell-slash"></i>
+                <h3>No Notifications</h3>
+                <p>You don't have any notifications at this time.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // DOM elements
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const notificationItems = document.querySelectorAll('.notification-item');
+        const markAllReadBtn = document.getElementById('markAllRead');
+        const clearAllBtn = document.getElementById('clearAll');
+        const emptyState = document.getElementById('emptyState');
+        
+        // Filter notifications by type
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const filter = tab.dataset.filter;
+                let visibleCount = 0;
+                
+                // Filter notifications
+                notificationItems.forEach(item => {
+                    const type = item.dataset.type;
+                    const isUnread = item.classList.contains('unread');
+                    
+                    if (filter === 'all' || 
+                        (filter === 'unread' && isUnread) || 
+                        (filter === type)) {
+                        item.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show empty state if no notifications match filter
+                if (visibleCount === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                }
+            });
+        });
+        
+        // Mark all notifications as read
+        markAllReadBtn.addEventListener('click', () => {
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                item.style.borderLeft = '4px solid transparent';
+            });
+        });
+        
+        // Clear all notifications
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all notifications?')) {
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.style.display = 'none';
+                });
+                emptyState.style.display = 'block';
+            }
+        });
+        
+        // Mark single notification as read
+        function markAsRead(button) {
+            const notification = button.closest('.notification-item');
+            notification.classList.remove('unread');
+            notification.style.borderLeft = '4px solid transparent';
+        }
+        
+        // Remove single notification
+        function removeNotification(button) {
+            const notification = button.closest('.notification-item');
+            notification.style.display = 'none';
+            
+            // Check if all notifications are hidden
+            const visibleNotifications = document.querySelectorAll('.notification-item[style="display: flex;"]');
+            if (visibleNotifications.length === 0) {
+                emptyState.style.display = 'block';
+            }
+        }
+        
+        // View shipment (would link to tracking page)
+        function viewShipment(shipmentId) {
+            alert(`Viewing shipment ${shipmentId}`);
+            // In real implementation: window.location.href = `TrackShipment.php?tracking=${shipmentId}`;
+        }
+        
+        // View promotion
+        function viewPromotion() {
+            alert('Viewing promotion details');
+            // In real implementation: window.location.href = 'Promotions.php';
+        }
+    </script>
+</body>
+</html>

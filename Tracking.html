@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            color: #ff7300;
+        }
+        
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        /* Quick Action Buttons */
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            padding: 15px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        .quick-action-btn i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* Search Box */
+        .search-container {
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .search-box {
+            display: flex;
+            width: 300px;
+        }
+        
+        .search-box input {
+            padding: 10px 10px 10px 35px;
+            border: 2px solid #ff7300;
+            border-radius: 5px;
+            width: 100%;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        /* Shipment Table */
+        .shipment-list {
+            margin-bottom: 40px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* Status Badges */
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .status-intransit {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .status-delivered {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        /* Action Buttons */
+        .action-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 3px;
+            font-size: 14px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-btn:hover {
+            color: black;
+        }
+        
+        /* Map Container */
+        .map-container {
+            margin: 20px 0;
+            border: 2px solid #ff7300;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+            height: 400px;
+        }
+        
+        #trackingMap {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Timeline */
+        .timeline-container {
+            margin: 20px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .step {
+            width: 100px;
+            padding: 10px;
+            background-color: #ddd;
+            color: #666;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: 0.3s;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step.active {
+            background-color: #ff7300;
+            color: white;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #ddd;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+        
+        .timeline-progress {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 4px;
+            background: #ff7300;
+            transform: translateY(-50%);
+            z-index: 1;
+            transition: width 0.3s;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group select, 
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        /* Shipment Info in Tracking Modal */
+        .shipment-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .shipment-info p {
+            margin: 5px 0;
+            display: flex;
+        }
+        
+        .shipment-info strong {
+            min-width: 120px;
+            display: inline-block;
+        }
+        
+        /* Modal Footer */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-footer button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .update-btn {
+            background-color: #ff7300;
+            color: white;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .update-btn:hover {
+            background-color: #cc5c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="UserDashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="Tracking.php"><i class="fas fa-shipping-fast"></i> Shipment</a></li>
+                <li><a href="Fleet.php"><i class="fas fa-truck-moving"></i> Fleet Management</a></li>
+                <li><a href="Report.php"><i class="fas fa-chart-bar"></i> Report & Analysis</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h1><i class="fas fa-shipping-fast"></i> Shipment Tracking</h1>
+            
+            <!-- Quick Action Buttons -->
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="openModal('newShipmentModal')">
+                    <i class="fas fa-plus"></i> New Shipment
+                </button>
+                <button class="quick-action-btn" onclick="refreshShipments()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="shipmentSearch" placeholder="Search shipments...">
+                </div>
+            </div>
+            
+            <!-- Shipment List -->
+            <section class="shipment-list">
+                <table id="shipmentTable">
+                    <thead>
+                        <tr>
+                            <th>Track ID</th>
+                            <th>PGO Number</th>
+                            <th>Customer</th>
+                            <th>Departure Place</th>
+                            <th>Departure Date</th>
+                            <th>Delivery Place</th>
+                            <th>Delivery Date</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SH1001</td>
+                            <td>PGO-2023-001</td>
+                            <td>John Banda</td>
+                            <td>Lilongwe Warehouse</td>
+                            <td>2023-07-15 08:00</td>
+                            <td>Blantyre Store</td>
+                            <td>2023-07-17 14:30</td>
+                            <td>Office supplies to Blantyre branch</td>
+                            <td><span class="status status-intransit">In Transit</span></td>
+                            <td>
+                                <button class="action-btn" onclick="openTrackingModal('SH1001')">
+                                    <i class="fas fa-map-marked-alt"></i> Track
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>SH1002</td>
+                            <td>PGO-2023-002</td>
+                            <td>Sarah Phiri</td>
+                            <td>Mzuzu Depot</td>
+                            <td>2023-07-16 09:15</td>
+                            <td>Lilongwe Hospital</td>
+                            <td>2023-07-18 16:00</td>
+                            <td>Medical equipment for hospital</td>
+                            <td><span class="status status-pending">Pending</span></td>
+                            <td>
+                                <button class="action-btn" onclick="openTrackingModal('SH1002')">
+                                    <i class="fas fa-map-marked-alt"></i> Track
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>SH1003</td>
+                            <td>PGO-2023-003</td>
+                            <td>James Mwanza</td>
+                            <td>Blantyre Factory</td>
+                            <td>2023-07-10 07:30</td>
+                            <td>Zomba Construction Site</td>
+                            <td>2023-07-12 11:45</td>
+                            <td>Construction materials</td>
+                            <td><span class="status status-delivered">Delivered</span></td>
+                            <td>
+                                <button class="action-btn" onclick="openTrackingModal('SH1003')">
+                                    <i class="fas fa-map-marked-alt"></i> Track
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- New Shipment Modal -->
+    <div id="newShipmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('newShipmentModal')">&times;</span>
+            <h2><i class="fas fa-plus"></i> Create New Shipment</h2>
+            
+            <form id="shipmentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerName">Customer Name:</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pgoNumber">PGO Number:</label>
+                        <input type="text" id="pgoNumber" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="departurePlace">Departure Place:</label>
+                        <input type="text" id="departurePlace" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureDate">Departure Date:</label>
+                        <input type="datetime-local" id="departureDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deliveryPlace">Delivery Place:</label>
+                        <input type="text" id="deliveryPlace" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryDate">Delivery Date:</label>
+                        <input type="datetime-local" id="deliveryDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="shipmentDetails">Details:</label>
+                    <textarea id="shipmentDetails" rows="3" required></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="cancel-btn" onclick="closeModal('newShipmentModal')">Cancel</button>
+                    <button type="submit" class="update-btn">Create Shipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tracking Modal -->
+    <div id="trackingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('trackingModal')">&times;</span>
+            <h2><i class="fas fa-map-marked-alt"></i> Shipment Tracking</h2>
+            
+            <div class="shipment-info">
+                <p><strong>Track ID:</strong> <span id="modalTrackId">SH1001</span></p>
+                <p><strong>PGO Number:</strong> <span id="modalPgoNumber">PGO-2023-001</span></p>
+                <p><strong>Customer:</strong> <span id="modalCustomer">John Banda</span></p>
+                <p><strong>Departure Place:</strong> <span id="modalDeparturePlace">Lilongwe Warehouse</span></p>
+                <p><strong>Departure Date:</strong> <span id="modalDepartureDate">2023-07-15 08:00</span></p>
+                <p><strong>Delivery Place:</strong> <span id="modalDeliveryPlace">Blantyre Store</span></p>
+                <p><strong>Delivery Date:</strong> <span id="modalDeliveryDate">2023-07-17 14:30</span></p>
+                <p><strong>Details:</strong> <span id="modalDetails">Office supplies to Blantyre branch</span></p>
+                <p><strong>Status:</strong> <span id="modalStatus" class="status status-intransit">In Transit</span></p>
+            </div>
+            
+            <div class="timeline-container">
+                <h3>Shipment Progress</h3>
+                <div class="timeline">
+                    <div class="step" id="step1">Pending</div>
+                    <div class="step" id="step2">In Transit</div>
+                    <div class="step" id="step3">Out for Delivery</div>
+                    <div class="step" id="step4">Delivered</div>
+                    <div class="timeline-progress" id="timelineProgress"></div>
+                </div>
+            </div>
+            
+            <div class="map-container">
+                <h3>Current Location</h3>
+                <div id="trackingMap"></div>
+            </div>
+            
+            <div class="status-update-section">
+                <h3>Update Status</h3>
+                
+                <div class="form-group">
+                    <label for="statusUpdate">New Status:</label>
+                    <select id="statusUpdate">
+                        <option value="pending">Pending</option>
+                        <option value="intransit" selected>In Transit</option>
+                        <option value="outfordelivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="locationUpdate">Current Location:</label>
+                        <input type="text" id="locationUpdate" placeholder="Enter current location">
+                    </div>
+                    <div class="form-group">
+                        <label for="currentPlace">Current Place:</label>
+                        <input type="text" id="currentPlace" placeholder="Enter current place name">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="statusNotes">Notes:</label>
+                    <textarea id="statusNotes" rows="3" placeholder="Add any update notes..."></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="cancel-btn" onclick="closeModal('trackingModal')">Cancel</button>
+                    <button type="button" class="update-btn" onclick="updateShipmentStatus()">Update Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        let currentMap = null;
+        let currentMarker = null;
+        let currentShipmentId = '';
+        
+        // Initialize when DOM is loaded
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#shipmentTable').DataTable({
+                dom: '<"top"f>rt<"bottom"lip><"clear">',
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('search-box');
+                    $('.dataTables_filter label').contents().filter(function() {
+                        return this.nodeType === 3;
+                    }).remove();
+                },
+                scrollX: true
+            });
+            
+            // Form submission for new shipment
+            $('#shipmentForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const customerName = $('#customerName').val();
+                const pgoNumber = $('#pgoNumber').val();
+                const departurePlace = $('#departurePlace').val();
+                const departureDate = $('#departureDate').val();
+                const deliveryPlace = $('#deliveryPlace').val();
+                const deliveryDate = $('#deliveryDate').val();
+                const details = $('#shipmentDetails').val();
+                
+                // Format dates for display
+                const formattedDeparture = formatDateTime(departureDate);
+                const formattedDelivery = formatDateTime(deliveryDate);
+                
+                // Generate a new track ID
+                const newTrackId = 'SH' + Math.floor(1000 + Math.random() * 9000);
+                
+                // Add new row to the table
+                $('#shipmentTable').DataTable().row.add([
+                    newTrackId,
+                    pgoNumber,
+                    customerName,
+                    departurePlace,
+                    formattedDeparture,
+                    deliveryPlace,
+                    formattedDelivery,
+                    details,
+                    '<span class="status status-pending">Pending</span>',
+                    `<button class="action-btn" onclick="openTrackingModal('${newTrackId}')">
+                        <i class="fas fa-map-marked-alt"></i> Track
+                    </button>`
+                ]).draw();
+                
+                alert('Shipment created successfully!');
+                closeModal('newShipmentModal');
+                this.reset();
+            });
+        });
+        
+        // Format datetime-local input to readable format
+        function formatDateTime(datetimeStr) {
+            if (!datetimeStr) return '';
+            
+            const date = new Date(datetimeStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }) + ' ' + date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        }
+        
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Clean up map when closing tracking modal
+            if (modalId === 'trackingModal' && currentMap) {
+                currentMap.remove();
+                currentMap = null;
+                currentMarker = null;
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                closeModal(event.target.id);
+            }
+        }
+        
+        // Tracking modal functions
+        function openTrackingModal(shipmentId) {
+            currentShipmentId = shipmentId;
+            
+            // Find the shipment in the table
+            const row = $(`#shipmentTable td:contains('${shipmentId}')`).closest('tr');
+            if (row.length) {
+                const cells = row.find('td');
+                
+                $('#modalTrackId').text(shipmentId);
+                $('#modalPgoNumber').text(cells.eq(1).text());
+                $('#modalCustomer').text(cells.eq(2).text());
+                $('#modalDeparturePlace').text(cells.eq(3).text());
+                $('#modalDepartureDate').text(cells.eq(4).text());
+                $('#modalDeliveryPlace').text(cells.eq(5).text());
+                $('#modalDeliveryDate').text(cells.eq(6).text());
+                $('#modalDetails').text(cells.eq(7).text());
+                
+                // Set status
+                const statusCell = cells.eq(8).find('span');
+                $('#modalStatus').text(statusCell.text())
+                                 .removeClass()
+                                 .addClass('status')
+                                 .addClass(statusCell.attr('class'));
+                
+                // Set timeline based on status
+                updateTimeline(statusCell.attr('class'));
+                
+                // Initialize map
+                initMap(shipmentId, statusCell.attr('class'));
+            }
+            
+            openModal('trackingModal');
+        }
+        
+        function initMap(shipmentId, status) {
+            // Malawi coordinates
+            const malawiCoords = [-13.2543, 34.3015];
+            
+            // Create map centered on Malawi
+            currentMap = L.map('trackingMap').setView(malawiCoords, 7);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(currentMap);
+            
+            // Add marker based on shipment ID and status (example locations)
+            let markerCoords;
+            switch(shipmentId) {
+                case 'SH1001': // Example shipment
+                    if (status.includes('intransit')) {
+                        markerCoords = [-14.4735, 35.2690]; // Approaching Dedza
+                    } else if (status.includes('delivered')) {
+                        markerCoords = [-15.7861, 35.0058]; // Blantyre
+                    } else {
+                        markerCoords = [-13.9626, 33.7741]; // Lilongwe
+                    }
+                    break;
+                case 'SH1002': // Example shipment
+                    markerCoords = [-11.4526, 34.0218]; // Mzuzu
+                    break;
+                case 'SH1003': // Example shipment
+                    markerCoords = [-15.3833, 35.3333]; // Zomba
+                    break;
+                default:
+                    markerCoords = malawiCoords;
+            }
+            
+            // Add marker
+            currentMarker = L.marker(markerCoords).addTo(currentMap)
+                .bindPopup(`<b>Shipment ${shipmentId}</b><br>Current Location`)
+                .openPopup();
+            
+            // Add some major cities in Malawi for reference
+            const cities = [
+                {name: "Lilongwe", coords: [-13.9626, 33.7741]},
+                {name: "Blantyre", coords: [-15.7861, 35.0058]},
+                {name: "Mzuzu", coords: [-11.4526, 34.0218]},
+                {name: "Zomba", coords: [-15.3833, 35.3333]},
+                {name: "Kasungu", coords: [-13.0333, 33.4833]},
+                {name: "Mangochi", coords: [-14.4667, 35.2667]}
+            ];
+            
+            cities.forEach(city => {
+                L.circleMarker(city.coords, {
+                    radius: 5,
+                    fillColor: "#ff7300",
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(currentMap).bindTooltip(city.name);
+            });
+        }
+        
+        function updateTimeline(statusClass) {
+            // Reset all steps
+            $('.step').removeClass('active');
+            
+            // Update progress based on status
+            let progressWidth = 0;
+            
+            if (statusClass.includes('pending')) {
+                progressWidth = 0;
+            } else if (statusClass.includes('intransit')) {
+                $('#step1, #step2').addClass('active');
+                progressWidth = 50;
+            } else if (statusClass.includes('delivered')) {
+                $('.step').addClass('active');
+                progressWidth = 100;
+            }
+            
+            $('#timelineProgress').css('width', progressWidth + '%');
+        }
+        
+        function updateShipmentStatus() {
+            const newStatus = $('#statusUpdate').val();
+            const location = $('#locationUpdate').val();
+            const place = $('#currentPlace').val();
+            const notes = $('#statusNotes').val();
+            
+            if (!currentShipmentId) {
+                alert("Error: No shipment selected");
+                return;
+            }
+            
+            // Update the table row
+            const row = $(`#shipmentTable td:contains('${currentShipmentId}')`).closest('tr');
+            if (row.length) {
+                const statusCell = row.find('td:eq(8) span');
+                statusCell.removeClass('status-pending status-intransit status-delivered');
+                
+                let statusText = '';
+                let statusClass = '';
+                
+                switch(newStatus) {
+                    case 'pending':
+                        statusText = 'Pending';
+                        statusClass = 'status-pending';
+                        break;
+                    case 'intransit':
+                        statusText = 'In Transit';
+                        statusClass = 'status-intransit';
+                        break;
+                    case 'outfordelivery':
+                        statusText = 'Out for Delivery';
+                        statusClass = 'status-intransit';
+                        break;
+                    case 'delivered':
+                        statusText = 'Delivered';
+                        statusClass = 'status-delivered';
+                        break;
+                }
+                
+                statusCell.text(statusText).addClass(statusClass);
+                $('#modalStatus').text(statusText)
+                                 .removeClass()
+                                 .addClass('status')
+                                 .addClass(statusClass);
+                
+                updateTimeline(statusClass);
+            }
+            
+            alert(`Status updated for ${currentShipmentId} to ${newStatus}\nLocation: ${location}\nPlace: ${place}\nNotes: ${notes}`);
+            closeModal('trackingModal');
+        }
+        
+        function refreshShipments() {
+            // In a real app, this would fetch updated data from the server
+            alert('Shipments list refreshed');
+        }
+    </script>
+</body>
+</html>

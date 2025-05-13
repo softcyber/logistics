@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            color: #ff7300;
+        }
+        
+        .sidebar i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #ff7300;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        /* Stats Cards */
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 200px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .card span {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff7300;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* Quick Action Buttons */
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            padding: 15px;
+            background-color: #ff7300;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: #cc5c00;
+        }
+        
+        .quick-action-btn i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* Shipments Table */
+        .shipments {
+            margin-bottom: 40px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* Status Badges */
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .status-intransit {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .status-delivered {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        /* Map Container */
+        .map-container {
+           margin-bottom:50px;
+            border: 2px solid #ff7300;
+            border-radius: 5px;
+            padding: 20px;
+            background: #f9f9f9;
+            height: 400px;
+        }
+        
+        #dashboardMap {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Recent Activity */
+        .activity-list {
+            margin-top: 30px;
+        }
+        
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        
+        .activity-info {
+            flex: 1;
+        }
+        
+        .activity-time {
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul>
+                <li><a href="UserDashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="Tracking.php"><i class="fas fa-shipping-fast"></i> Shipment</a></li>
+                <li><a href="Fleet.php"><i class="fas fa-truck-moving"></i> Fleet Management</a></li>
+                <li><a href="Report.php"><i class="fas fa-chart-bar"></i> Report & Analysis</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+            
+            <!-- Quick Stats -->
+            <div class="stats">
+                <div class="card">
+                    Ongoing Shipments: <span id="ongoing">12</span>
+                </div>
+                <div class="card">
+                    Completed Deliveries: <span id="completed">84</span>
+                </div>
+                <div class="card">
+                    Fleet Performance: <span id="fleet-performance">92%</span>
+                </div>
+                <div class="card">
+                    Active Drivers: <span id="active-drivers">8</span>
+                </div>
+            </div>
+            
+            <!-- Quick Action Buttons -->
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="location.href='Tracking.php'">
+                    <i class="fas fa-plus"></i> New Shipment
+                </button>
+                <button class="quick-action-btn" onclick="location.href='Fleet.php'">
+                    <i class="fas fa-truck"></i> Manage Fleet
+                </button>
+                <button class="quick-action-btn" onclick="location.href='Report.php'">
+                    <i class="fas fa-chart-pie"></i> View Reports
+                </button>
+            </div>
+            
+            <!-- Map Overview -->
+            <div class="map-container">
+                <h2><i class="fas fa-map-marked-alt"></i> Fleet Location Overview</h2>
+                <div id="dashboardMap"></div>
+            </div>
+            
+            <!-- Recent Shipments -->
+            <section class="shipments">
+                <h2><i class="fas fa-shipping-fast"></i> Recent Shipments</h2>
+                <table id="recentShipments">
+                    <thead>
+                        <tr>
+                            <th>Track ID</th>
+                            <th>Customer</th>
+                            <th>Departure</th>
+                            <th>Delivery</th>
+                            <th>Status</th>
+                            <th>Last Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SH1001</td>
+                            <td>John Banda</td>
+                            <td>Lilongwe</td>
+                            <td>Blantyre</td>
+                            <td><span class="status status-intransit">In Transit</span></td>
+                            <td>2023-07-17 10:30</td>
+                        </tr>
+                        <tr>
+                            <td>SH1002</td>
+                            <td>Sarah Phiri</td>
+                            <td>Mzuzu</td>
+                            <td>Lilongwe</td>
+                            <td><span class="status status-pending">Pending</span></td>
+                            <td>2023-07-16 15:45</td>
+                        </tr>
+                        <tr>
+                            <td>SH1003</td>
+                            <td>James Mwanza</td>
+                            <td>Blantyre</td>
+                            <td>Zomba</td>
+                            <td><span class="status status-delivered">Delivered</span></td>
+                            <td>2023-07-15 11:20</td>
+                        </tr>
+                        <tr>
+                            <td>SH1004</td>
+                            <td>Mary Gondwe</td>
+                            <td>Kasungu</td>
+                            <td>Mangochi</td>
+                            <td><span class="status status-intransit">In Transit</span></td>
+                            <td>2023-07-17 09:15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- Recent Activity -->
+            <section class="activity-list">
+                <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                <div class="activity-item">
+                    <div class="activity-info">
+                        <strong>Shipment SH1004</strong> departed from Kasungu to Mangochi
+                    </div>
+                    <div class="activity-time">
+                        2023-07-17 08:00
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-info">
+                        <strong>Shipment SH1001</strong> arrived in Dedza
+                    </div>
+                    <div class="activity-time">
+                        2023-07-16 16:30
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-info">
+                        <strong>Shipment SH1003</strong> was successfully delivered
+                    </div>
+                    <div class="activity-time">
+                        2023-07-15 11:20
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-info">
+                        New shipment <strong>SH1005</strong> was created
+                    </div>
+                    <div class="activity-time">
+                        2023-07-15 09:45
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#recentShipments').DataTable({
+                dom: '<"top"f>rt<"bottom"lip><"clear">',
+                order: [[5, 'desc']],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('search-box');
+                    $('.dataTables_filter label').contents().filter(function() {
+                        return this.nodeType === 3;
+                    }).remove();
+                }
+            });
+            
+            // Initialize map
+            const map = L.map('dashboardMap').setView([-13.2543, 34.3015], 7);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add markers for active shipments (example data)
+            const activeShipments = [
+                { id: 'SH1001', location: [-14.4735, 35.2690], name: 'Dedza' },
+                { id: 'SH1004', location: [-13.0333, 33.4833], name: 'Kasungu' }
+            ];
+            
+            activeShipments.forEach(shipment => {
+                L.marker(shipment.location).addTo(map)
+                    .bindPopup(`<b>Shipment ${shipment.id}</b><br>${shipment.name}`)
+                    .openPopup();
+            });
+            
+            // Add some major cities in Malawi for reference
+            const cities = [
+                {name: "Lilongwe", coords: [-13.9626, 33.7741]},
+                {name: "Blantyre", coords: [-15.7861, 35.0058]},
+                {name: "Mzuzu", coords: [-11.4526, 34.0218]},
+                {name: "Zomba", coords: [-15.3833, 35.3333]},
+                {name: "Kasungu", coords: [-13.0333, 33.4833]},
+                {name: "Mangochi", coords: [-14.4667, 35.2667]}
+            ];
+            
+            cities.forEach(city => {
+                L.circleMarker(city.coords, {
+                    radius: 5,
+                    fillColor: "#ff7300",
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map).bindTooltip(city.name);
+            });
+            
+            // Simulate real-time updates
+            setInterval(fetchShipmentData, 5000);
+        });
+        
+        function fetchShipmentData() {
+            // In a real app, this would fetch data from the server
+            console.log("Fetching updated shipment data...");
+            // Update would happen here
+        }
+    </script>
+</body>
+</html>
